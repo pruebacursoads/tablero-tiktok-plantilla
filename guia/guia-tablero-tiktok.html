@@ -58,6 +58,10 @@ button{font:inherit;cursor:pointer}
 .btn{border:0;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:13px;padding:9px 14px;border-radius:10px;white-space:nowrap}
 .btn.ghost{background:var(--soft);color:var(--accent)}
 .mark{margin-top:6px}
+a.btn{display:inline-block;text-decoration:none}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 8px}
+.btn.big{padding:13px 20px;font-size:14px}
+.note{font-size:13px;color:var(--ink3);margin:4px 0 0}
 .prompt{background:var(--code);border-radius:12px;padding:14px;font-size:13px;white-space:pre-wrap;max-height:260px;overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace}
 a{color:var(--accent)}
 details.faq{border-bottom:1px solid var(--line);padding:12px 0}
@@ -72,6 +76,12 @@ footer{margin-top:40px;font-size:12px;color:var(--ink3)}
   <h1>Tu tablero de TikTok que <mark>te dice qué hacer</mark> y se actualiza solo</h1>
   <p class="lead">Un enlace propio con el semáforo de tu cuenta, 4 acciones concretas con tus datos y tus videos ordenados por lo que de verdad trae seguidores. Se actualiza todos los días a las 7:00 am. Esta guía te lleva de la mano, un paso a la vez, sin saber nada técnico.</p>
   <div class="chips"><span class="chip">⏱ 20-30 minutos</span><span class="chip">💸 $0 con planes gratuitos</span><span class="chip">🌐 Solo con el navegador</span></div>
+
+  <div class="cta">
+    <a class="btn big" href="https://github.com/pruebacursoads/tablero-tiktok-plantilla/releases/latest/download/tablero-tiktok-emprendedor.zip" target="_blank" rel="noopener">⬇ Descargar la skill para Claude (ZIP)</a>
+    <a class="btn big ghost" href="https://github.com/pruebacursoads/tablero-tiktok-plantilla" target="_blank" rel="noopener">Abrir la plantilla en GitHub</a>
+  </div>
+  <p class="note">La skill es opcional: la guía de abajo sirve sola. Con la skill, Claude te acompaña paso a paso y revisa tus capturas.</p>
 
   <h2>Antes de empezar, ten a mano</h2>
   <div class="need">
@@ -100,7 +110,7 @@ footer{margin-top:40px;font-size:12px;color:var(--ink3)}
   <div class="card">
     <p style="margin-top:0">Si usas la app de escritorio de Claude (pestaña <b>Code</b>), hay dos opciones. Antes, haz tú las etapas 1 y 2 (las cuentas y conectar TikTok), porque solo tú puedes iniciar sesión.</p>
     <ol>
-      <li><b>Instala la skill</b> <code>tablero-tiktok-emprendedor</code> (carpeta <code>skill</code> de la plantilla, o el ZIP que te dio Hugo) y escribe: <i>"Quiero mi tablero de TikTok"</i>.</li>
+      <li><b>Instala la skill</b> <code>tablero-tiktok-emprendedor</code> y escribe: <i>"Quiero mi tablero de TikTok"</i>.<div class="cta" style="margin-top:8px"><a class="btn" href="https://github.com/pruebacursoads/tablero-tiktok-plantilla/releases/latest/download/tablero-tiktok-emprendedor.zip" target="_blank" rel="noopener">⬇ Descargar la skill (ZIP)</a></div></li>
       <li><b>O pega este prompt maestro</b> en una carpeta vacía:</li>
     </ol>
     <div class="prompt" id="prompt"></div>
