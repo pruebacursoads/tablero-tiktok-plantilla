@@ -1,0 +1,240 @@
+<title>Tablero TikTok Paso a Paso</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap">
+<style>
+/* Concepto: lista de tareas de una sola columna; cada etapa se abre, se hace y se marca. Violeta y amarillo de la marca de Hugo. */
+:root{
+  --bg:#f6f5fa; --card:#ffffff; --ink:#1b1730; --ink2:#575270; --ink3:#857fa0; --line:#e4e0f0;
+  --accent:#6d3df0; --accent-ink:#ffffff; --soft:#eee9fe; --hl:#ffd84a; --hl-ink:#3b2f00;
+  --good:#12805c; --good-bg:#e3f6ee; --warn:#a15c00; --warn-bg:#fff1d6; --code:#f0eefa;
+  --font:"Montserrat",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#110e1f; --card:#1b1730; --ink:#f1eefc; --ink2:#b4aed0; --ink3:#8d86ad; --line:#2e2848;
+  --accent:#9b79ff; --accent-ink:#110e1f; --soft:#2a2150; --hl:#ffd84a; --hl-ink:#2b2200;
+  --good:#4ad6a0; --good-bg:#0f2e25; --warn:#ffc15a; --warn-bg:#33270c; --code:#241e3d; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#110e1f; --card:#1b1730; --ink:#f1eefc; --ink2:#b4aed0; --ink3:#8d86ad; --line:#2e2848;
+  --accent:#9b79ff; --accent-ink:#110e1f; --soft:#2a2150; --hl:#ffd84a; --hl-ink:#2b2200;
+  --good:#4ad6a0; --good-bg:#0f2e25; --warn:#ffc15a; --warn-bg:#33270c; --code:#241e3d; color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.55;font-size:15px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:760px;margin:0 auto;padding-block:28px 64px}
+h1{font-size:clamp(26px,5vw,36px);line-height:1.15;margin:0 0 12px;font-weight:800;letter-spacing:-.02em;text-wrap:balance}
+h1 mark{background:var(--hl);color:var(--hl-ink);padding:0 .25em;border-radius:6px}
+.lead{font-size:16px;color:var(--ink2);margin:0 0 20px;max-width:60ch}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--ink2)}
+h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:32px 0 10px;font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+.need{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.need .card b{display:block;margin-bottom:2px}
+.need .card span{font-size:13px;color:var(--ink2)}
+.need a{color:var(--accent);font-weight:600;font-size:13px;word-break:break-all}
+.prog{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:10px 0;margin-top:16px}
+.prog .row{display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:6px}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+details.step{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px}
+details.step[open]{border-color:var(--accent)}
+details.step summary{list-style:none;cursor:pointer;display:flex;gap:14px;align-items:center;padding:16px 18px}
+details.step summary::-webkit-details-marker{display:none}
+.n{flex:none;width:34px;height:34px;border-radius:50%;background:var(--soft);color:var(--accent);display:grid;place-items:center;font-weight:800}
+.done .n{background:var(--good-bg);color:var(--good)}
+.t{flex:1;min-width:0}
+.t b{display:block;font-size:16px}
+.t small{color:var(--ink3);font-size:12px}
+.body{padding:0 18px 18px 66px}
+@media(max-width:520px){.body{padding-left:18px}}
+.body ol{margin:0 0 12px;padding-left:20px}
+.body li{margin-bottom:8px}
+.ok{background:var(--good-bg);color:var(--good);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:600;margin:12px 0}
+.warn{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:600;margin:12px 0}
+code,.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:var(--code);border-radius:6px;padding:1px 6px}
+.copy{display:flex;gap:8px;align-items:stretch;margin:6px 0 10px}
+.copy .code{flex:1;min-width:0;padding:9px 12px;border-radius:10px;overflow-wrap:anywhere}
+button{font:inherit;cursor:pointer}
+.btn{border:0;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:13px;padding:9px 14px;border-radius:10px;white-space:nowrap}
+.btn.ghost{background:var(--soft);color:var(--accent)}
+.mark{margin-top:6px}
+.prompt{background:var(--code);border-radius:12px;padding:14px;font-size:13px;white-space:pre-wrap;max-height:260px;overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace}
+a{color:var(--accent)}
+details.faq{border-bottom:1px solid var(--line);padding:12px 0}
+details.faq summary{cursor:pointer;font-weight:700}
+details.faq p{margin:8px 0 0;color:var(--ink2);font-size:14px}
+footer{margin-top:40px;font-size:12px;color:var(--ink3)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <h1>Tu tablero de TikTok que <mark>te dice qué hacer</mark> y se actualiza solo</h1>
+  <p class="lead">Un enlace propio con el semáforo de tu cuenta, 4 acciones concretas con tus datos y tus videos ordenados por lo que de verdad trae seguidores. Se actualiza todos los días a las 7:00 am. Esta guía te lleva de la mano, un paso a la vez, sin saber nada técnico.</p>
+  <div class="chips"><span class="chip">⏱ 20-30 minutos</span><span class="chip">💸 $0 con planes gratuitos</span><span class="chip">🌐 Solo con el navegador</span></div>
+
+  <h2>Antes de empezar, ten a mano</h2>
+  <div class="need">
+    <div class="card"><b>Tu cuenta de TikTok</b><span>La de tu negocio, con la que publicas tus videos.</span></div>
+    <div class="card"><b>Un correo</b><span>Para crear 3 cuentas gratuitas: Windsor, GitHub y Vercel.</span></div>
+    <div class="card"><b>Esta guía abierta</b><span>Tus avances quedan marcados en este navegador.</span></div>
+  </div>
+
+  <div class="prog" aria-live="polite"><div class="row"><span id="ptxt">0 de 7 etapas</span><span id="ppct">0%</span></div><div class="bar"><i id="pbar"></i></div></div>
+
+  <div id="steps"></div>
+
+  <h2>Cuando todo esté listo</h2>
+  <div class="card">
+    <b>Cómo usar tu tablero (2 minutos por semana)</b>
+    <ol>
+      <li>Mira el <b>semáforo</b>: 🟢 vas bien, 🟡 estable, 🔴 hay que reaccionar.</li>
+      <li>Lee <b>Qué hacer ahora</b> y haz <b>una sola</b> acción esta semana, no las cuatro.</li>
+      <li>En tus videos, copia los que tienen 🏆 <b>Replicar</b> y evita los de ⚠ <b>Revisar gancho</b>.</li>
+      <li>Usa <b>7 días</b> para decidir la semana y <b>30 días</b> para ver la tendencia.</li>
+      <li>Revísalo los lunes. No necesitas más.</li>
+    </ol>
+  </div>
+
+  <h2>¿Prefieres que Claude lo haga por ti?</h2>
+  <div class="card">
+    <p style="margin-top:0">Si usas la app de escritorio de Claude (pestaña <b>Code</b>), hay dos opciones. Antes, haz tú las etapas 1 y 2 (las cuentas y conectar TikTok), porque solo tú puedes iniciar sesión.</p>
+    <ol>
+      <li><b>Instala la skill</b> <code>tablero-tiktok-emprendedor</code> (carpeta <code>skill</code> de la plantilla, o el ZIP que te dio Hugo) y escribe: <i>"Quiero mi tablero de TikTok"</i>.</li>
+      <li><b>O pega este prompt maestro</b> en una carpeta vacía:</li>
+    </ol>
+    <div class="prompt" id="prompt"></div>
+    <div class="copy" style="margin-top:10px"><button class="btn" data-copy-id="prompt">Copiar prompt maestro</button></div>
+    <div class="warn">Nunca pegues tu API key de Windsor en el chat con Claude. Se guarda solo en GitHub, en la casilla "Secret".</div>
+  </div>
+
+  <h2>Si algo no sale</h2>
+  <div class="card" id="faq"></div>
+
+  <footer>Hecho por Hugo López, El Marketero del Pueblo. Los nombres de botones están en inglés porque así los muestran GitHub y Vercel; si tu navegador los traduce, busca el mismo lugar.</footer>
+</div>
+
+<script>
+const REPO = "pruebacursoads/tablero-tiktok-plantilla";
+const STEPS = [
+ {t:"Crea tus 3 cuentas gratuitas", s:"GitHub, Vercel y Windsor · 8 min", body:`
+  <p><b>A. GitHub</b> (guarda tu tablero). Omítela si ya tienes.</p>
+  <ol><li>Entra a <a href="https://github.com/signup" target="_blank" rel="noopener">github.com/signup</a> y crea tu cuenta.</li><li>Confirma tu correo con el código que te llega.</li></ol>
+  <p><b>B. Vercel</b> (publica tu tablero con un enlace).</p>
+  <ol><li>Entra a <a href="https://vercel.com/signup" target="_blank" rel="noopener">vercel.com/signup</a>.</li><li>Elige el plan <b>Hobby</b> (gratis) y escribe tu nombre.</li><li>Pulsa <b>Continue with GitHub</b> y autoriza.</li></ol>
+  <p><b>C. Windsor.ai</b> (el puente que trae tus datos de TikTok).</p>
+  <ol><li>Entra a <a href="https://onboard.windsor.ai" target="_blank" rel="noopener">onboard.windsor.ai</a> y crea tu cuenta.</li></ol>
+  <div class="ok">✅ Listo cuando: tienes sesión iniciada en las tres páginas.</div>`},
+ {t:"Conecta tu TikTok con Windsor", s:"Que Windsor pueda leer tus números · 5 min", body:`
+  <ol><li>En Windsor busca <b>Data Sources</b> (o el botón <b>+ Add data source</b>).</li>
+  <li>Escribe <code>TikTok</code> y elige <b>TikTok Organic</b>. <b>No</b> elijas "TikTok Ads".</li>
+  <li>Pulsa <b>Connect / Authorize</b>. Se abre TikTok: entra con la cuenta de tu negocio y acepta los permisos.</li>
+  <li>Vuelves a Windsor.</li></ol>
+  <div class="ok">✅ Listo cuando: tu cuenta de TikTok aparece en la lista de cuentas conectadas.</div>
+  <div class="warn">Si sale un error de permisos, pasa tu cuenta de TikTok a tipo Business (Configuración y privacidad → Cuenta → Cambiar a cuenta de empresa) y vuelve a conectar.</div>`},
+ {t:"Copia la plantilla a tu GitHub", s:"Tu propia copia privada · 2 min", body:`
+  <ol><li>Abre <a href="https://github.com/${REPO}" target="_blank" rel="noopener">github.com/${REPO}</a>.</li>
+  <li>Arriba a la derecha pulsa el botón verde <b>Use this template</b> y luego <b>Create a new repository</b>.</li>
+  <li>En <b>Repository name</b> escribe:</li></ol>
+  <div class="copy"><span class="code">tablero-tiktok</span><button class="btn ghost" data-copy="tablero-tiktok">Copiar</button></div>
+  <ol start="4"><li>Marca <b>Private</b> (privado).</li><li>Pulsa <b>Create repository</b> y espera unos segundos.</li></ol>
+  <div class="ok">✅ Listo cuando: ves tu repositorio con las carpetas <code>public</code>, <code>scripts</code> y <code>.github</code>, y tu usuario delante del nombre.</div>`},
+ {t:"Dale a tu tablero la llave de Windsor", s:"La API key, guardada en una caja fuerte · 3 min", body:`
+  <ol><li>En Windsor abre <b>Account settings</b> (menú de tu perfil, arriba a la derecha) y copia tu <b>API key</b>.</li>
+  <li>En tu repositorio de GitHub pulsa la pestaña <b>Settings</b> (engranaje).</li>
+  <li>A la izquierda: <b>Secrets and variables</b> y luego <b>Actions</b>.</li>
+  <li>Pulsa el botón verde <b>New repository secret</b>.</li>
+  <li>En <b>Name</b> escribe exactamente (mayúsculas):</li></ol>
+  <div class="copy"><span class="code">WINDSOR_API_KEY</span><button class="btn ghost" data-copy="WINDSOR_API_KEY">Copiar</button></div>
+  <ol start="6"><li>En <b>Secret</b> pega tu API key.</li><li>Pulsa <b>Add secret</b>.</li></ol>
+  <div class="ok">✅ Listo cuando: en "Repository secrets" aparece <code>WINDSOR_API_KEY</code> con un candado. La clave ya no se vuelve a mostrar, y eso es normal.</div>
+  <div class="warn">La API key es como una contraseña: no la compartas con nadie ni la pegues en chats.</div>`},
+ {t:"Haz la primera actualización", s:"Traer tus datos reales por primera vez · 2 min", body:`
+  <ol><li>En tu repositorio pulsa la pestaña <b>Actions</b>.</li>
+  <li>Si aparece un aviso de que las automatizaciones no están activas, pulsa <b>I understand my workflows, go ahead and enable them</b>.</li>
+  <li>A la izquierda elige <b>Actualizar datos de TikTok</b>.</li>
+  <li>A la derecha pulsa <b>Run workflow</b> y luego el botón verde <b>Run workflow</b>.</li>
+  <li>Espera 1-2 minutos y recarga la página.</li></ol>
+  <div class="ok">✅ Listo cuando: ves una fila con ✅ verde. Si sale ❌ rojo, abre la fila, mira el mensaje y busca abajo en "Si algo no sale".</div>`},
+ {t:"Publica tu tablero en Vercel", s:"Tu enlace propio · 3 min", body:`
+  <ol><li>Entra a <a href="https://vercel.com/new" target="_blank" rel="noopener">vercel.com/new</a>.</li>
+  <li>Si te lo pide, pulsa <b>Adjust GitHub App Permissions</b> y da acceso al repositorio <code>tablero-tiktok</code>.</li>
+  <li>Junto a <code>tablero-tiktok</code> pulsa <b>Import</b>.</li>
+  <li>No cambies nada y pulsa <b>Deploy</b>.</li>
+  <li>Espera 1 minuto. Aparece un enlace parecido a <code>tablero-tiktok-xxxx.vercel.app</code>. Ábrelo.</li></ol>
+  <div class="ok">✅ Listo cuando: ves tu tablero con tu nombre de cuenta y tus números reales.</div>
+  <div class="warn">Si aún ves un aviso amarillo de "datos de ejemplo", la etapa 5 no terminó en verde. Corrígela, espera 2 minutos y recarga con Ctrl+F5.</div>`},
+ {t:"Comprueba que se actualizará solo", s:"3 revisiones rápidas · 3 min", body:`
+  <ol><li><b>En el tablero:</b> bajo el título dice "actualizado hace…" y no hay aviso amarillo.</li>
+  <li><b>En Vercel:</b> entra a tu proyecto → <b>Deployments</b>. Debe haber un despliegue con el mensaje "Datos TikTok" y la fecha de hoy. Eso prueba que Vercel se publica solo con cada actualización.</li>
+  <li><b>Mañana después de las 7:00 am (Perú):</b> en GitHub → Actions habrá una fila nueva con la etiqueta <i>Scheduled</i>. GitHub a veces tarda hasta una hora.</li>
+  <li><b>En tu celular:</b> abre tu enlace → menú del navegador → <b>Añadir a pantalla de inicio</b>.</li></ol>
+  <div class="ok">🎉 Listo: desde ahora solo abres tu enlace. Todo lo demás pasa solo.</div>
+  <p style="font-size:13px;color:var(--ink2)">Otra zona horaria: 12:00 UTC son las 7:00 am en Perú, Colombia y Ecuador, y las 9:00 am en Argentina y Chile. Si quieres otra hora, pide a Claude que cambie la línea <code>cron</code> de <code>.github/workflows/actualizar.yml</code>.</p>`}
+];
+const FAQ = [
+ ["Actions sale en rojo y dice «Falta WINDSOR_API_KEY»","El secreto no existe o tiene otro nombre. En Settings → Secrets and variables → Actions debe llamarse exactamente WINDSOR_API_KEY. Créalo de nuevo y pulsa Run workflow otra vez."],
+ ["Dice «Windsor respondió 401» o «403»","La API key está mal copiada, con espacios o vencida. Cópiala otra vez en Windsor, edita el secreto en GitHub (lápiz) y pégala sin espacios al inicio ni al final."],
+ ["Dice algo de «connector» o «no accounts»","TikTok Organic no está conectado en Windsor. Repite la etapa 2 y confirma que elegiste TikTok Organic, no TikTok Ads."],
+ ["Actions está en verde pero mi tablero sigue con el aviso amarillo","Espera 2 minutos y recarga con Ctrl+F5. Luego mira en Vercel → Deployments si hay un despliegue «Datos TikTok»."],
+ ["El tablero dice «No pude cargar los datos»","Tu cuenta tiene muy pocos días con datos. El tablero necesita al menos 3 días completos. Prueba otra vez en unos días."],
+ ["No veo el botón Run workflow","Estás en la lista general de Actions. A la izquierda pulsa «Actualizar datos de TikTok»: el botón aparece arriba a la derecha de esa lista."],
+ ["Las cifras de hoy no aparecen o salen en 0","TikTok entrega el día más reciente con 1 o 2 días de retraso. El tablero oculta los días incompletos a propósito."],
+ ["Mis números no coinciden con la app de TikTok","El «alcance» suma las personas únicas de cada día y la app cuenta otra ventana de tiempo. Compara semana contra semana, no busques cifras exactas."],
+ ["Vercel no me deja importar mi repositorio","Pulsa «Adjust GitHub App Permissions» y da acceso a tablero-tiktok. El plan Hobby gratuito funciona con repositorios privados."],
+ ["Pasó más de un día y no hay ejecución «Scheduled»","Lanza Run workflow a mano una vez. GitHub a veces retrasa las tareas programadas."]
+];
+const PROMPT = `Quiero montar mi propio tablero de TikTok accionable que se actualice solo cada día, siguiendo la plantilla de Hugo López (El Marketero del Pueblo). No soy técnico: habla en palabras simples, dame UN paso a la vez, y pídeme una captura de pantalla si me pierdo.
+
+Reglas:
+- Haz tú todo lo técnico (comandos, archivos, git). A mí pídeme solo lo que únicamente yo puedo hacer: iniciar sesión, autorizar y copiar mi API key.
+- NUNCA me pidas mi API key de Windsor por el chat. Dime en qué casilla la pego yo.
+- Mi repositorio debe ser PRIVADO.
+- Antes de crear o publicar algo, dime qué vas a hacer y espera mi "sí".
+
+Pasos:
+1. Verifica que tengo GitHub CLI (gh --version); si no, guíame desde https://cli.github.com.
+2. Inicia sesión con "gh auth login" (navegador) y luego "gh auth refresh -h github.com -s workflow". Cada vez que haya un código de 8 caracteres, dámelo y dime que lo pegue en https://github.com/login/device.
+3. Crea mi repositorio privado: gh repo create tablero-tiktok --template ${REPO} --private --clone, y entra a la carpeta.
+4. Guíame para copiar mi API key en Windsor (Account settings) y guardarla yo mismo como secreto de GitHub llamado exactamente WINDSOR_API_KEY (repositorio → Settings → Secrets and variables → Actions → New repository secret).
+5. Lanza la primera ejecución con "gh workflow run actualizar.yml", vigílala y confírmame cuando termine en verde y cuántos días y videos trajo.
+6. Llévame de la mano a https://vercel.com/new para importar el repositorio y hacer Deploy, sin cambiar opciones.
+7. Verifica conmigo: el tablero no muestra el aviso amarillo de datos de ejemplo, en Vercel hay un despliegue "Datos TikTok", y mañana después de las 7:00 am aparecerá una ejecución Scheduled en Actions.
+8. Al final explícame en 5 líneas cómo leer mi tablero (semáforo, Qué hacer ahora, videos 🏆 y ⚠).
+
+Empieza por el paso 1.`;
+
+const KEY="tablero-guia-v1";
+let done=new Set();
+try{done=new Set(JSON.parse(localStorage.getItem(KEY)||"[]"))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify([...done]))}catch(e){}};
+const $=s=>document.querySelector(s);
+
+function render(){
+  $("#steps").innerHTML=STEPS.map((s,i)=>`
+   <details class="step ${done.has(i)?"done":""}" id="s${i}" ${i===firstOpen()?"open":""}>
+     <summary><span class="n">${done.has(i)?"✓":i+1}</span><span class="t"><b>Etapa ${i+1} · ${s.t}</b><small>${s.s}</small></span></summary>
+     <div class="body">${s.body}
+       <button class="btn mark ${done.has(i)?"ghost":""}" data-done="${i}">${done.has(i)?"Desmarcar etapa":"Marcar etapa como lista"}</button>
+     </div></details>`).join("");
+  $("#faq").innerHTML=FAQ.map(f=>`<details class="faq"><summary>${f[0]}</summary><p>${f[1]}</p></details>`).join("");
+  $("#prompt").textContent=PROMPT;
+  const n=done.size,p=Math.round(n/STEPS.length*100);
+  $("#ptxt").textContent=`${n} de ${STEPS.length} etapas`;$("#ppct").textContent=p+"%";$("#pbar").style.width=p+"%";
+}
+function firstOpen(){for(let i=0;i<STEPS.length;i++)if(!done.has(i))return i;return -1}
+async function copy(text,btn){
+  const old=btn.textContent;
+  try{await navigator.clipboard.writeText(text);btn.textContent="¡Copiado!"}
+  catch(e){const r=document.createRange();const el=btn.previousElementSibling||btn.parentElement.previousElementSibling;if(el){r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}btn.textContent="Selecciona y copia"}
+  setTimeout(()=>btn.textContent=old,1600);
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.done!==undefined){const i=+b.dataset.done;done.has(i)?done.delete(i):done.add(i);save();render();
+    const nx=firstOpen();if(nx>=0&&done.has(i)){const el=document.getElementById("s"+nx);el&&el.scrollIntoView({behavior:"smooth",block:"start"})}}
+  else if(b.dataset.copy)copy(b.dataset.copy,b);
+  else if(b.dataset.copyId)copy($("#"+b.dataset.copyId).textContent,b);
+});
+render();
+</script>

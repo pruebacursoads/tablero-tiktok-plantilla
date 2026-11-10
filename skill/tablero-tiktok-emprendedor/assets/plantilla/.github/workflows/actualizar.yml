@@ -1,0 +1,29 @@
+name: Actualizar datos de TikTok
+
+on:
+  schedule:
+    - cron: "0 12 * * *" # todos los días 12:00 UTC (7:00 am Perú)
+  workflow_dispatch: {} # botón "Run workflow" para actualizar a mano
+
+permissions:
+  contents: write
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Traer datos de Windsor.ai
+        env:
+          WINDSOR_API_KEY: ${{ secrets.WINDSOR_API_KEY }}
+        run: node scripts/actualizar.mjs
+      - name: Guardar cambios (Vercel se redespliega solo)
+        run: |
+          git config user.name "tablero-bot"
+          git config user.email "tablero-bot@users.noreply.github.com"
+          git add public/data.json
+          git diff --staged --quiet || git commit -m "Datos TikTok $(date -u +%F)"
+          git push

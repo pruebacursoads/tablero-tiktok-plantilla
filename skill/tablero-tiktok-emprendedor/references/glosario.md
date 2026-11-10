@@ -1,0 +1,22 @@
+# Glosario en simple
+
+- **Windsor.ai**: el puente. Se conecta a tu TikTok y le entrega tus números a tu tablero.
+- **TikTok Organic**: tus videos normales (no los anuncios pagados).
+- **API key (llave de Windsor)**: una contraseña larga que permite a tu tablero pedir tus datos a Windsor. Es privada.
+- **GitHub**: la carpeta en internet donde vive el código de tu tablero. Es gratis.
+- **Repositorio**: una carpeta de GitHub. El tuyo se llama `tablero-tiktok` y es privado.
+- **Plantilla (template)**: una copia lista del tablero para que no empieces de cero.
+- **Secret / secreto**: una caja fuerte de GitHub donde guardas tu API key. Nadie la ve, ni tú después.
+- **Actions**: el reloj de GitHub. Ejecuta tareas solo, por ejemplo traer tus datos cada día.
+- **Workflow**: una tarea que Actions ejecuta. La nuestra es "Actualizar datos de TikTok".
+- **Run workflow**: botón para ejecutar la tarea ahora mismo, sin esperar a mañana.
+- **Vercel**: el servicio que convierte tu código en un enlace que puedes abrir. Es gratis para uso personal.
+- **Deploy / desplegar**: publicar o actualizar el enlace.
+- **Deployments**: la lista de publicaciones en Vercel. Cada actualización diaria genera una.
+- **Cron**: la hora fija de la tarea diaria (`0 12 * * *` significa todos los días a las 12:00 UTC).
+- **UTC**: hora mundial de referencia. 12:00 UTC son las 7:00 am en Perú.
+- **Alcance**: personas distintas que vieron tus videos ese día.
+- **Seguidores netos**: seguidores nuevos menos los que se fueron.
+- **Retención / "lo ve completo"**: porcentaje de gente que mira tu video hasta el final.
+- **Gancho**: los primeros 3 segundos de tu video, los que deciden si la gente se queda.
+- **Conversión al enlace**: de cada 100 visitas a tu perfil, cuántas tocan el enlace de tu bio.
