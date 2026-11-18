@@ -6,7 +6,7 @@ Hecho por Hugo López, El Marketero del Pueblo. Usa tus datos de TikTok a travé
 
 ## Lo que ves
 
-- **Semáforo** de la semana (va bien, estable o hay que reaccionar).
+- **5 hojas** en el menú lateral: Resumen (con desglose al tocar cada número), Mejor horario, Videos, Recomendaciones y Audiencia, con calendario de rango libre.
 - **Qué hacer ahora**: hasta 4 acciones con tus propios datos.
 - Tus números con comparación contra el periodo anterior, gráficos por día y tus videos con 🏆 *Replicar* y ⚠ *Revisar gancho*.
 
