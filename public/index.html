@@ -136,6 +136,12 @@ tr.det td:first-child{position:static;max-width:none}
   .main{padding:16px 16px 96px}
 }
 /* ---- nivel BI ---- */
+.nav .short{display:none}
+@media(max-width:860px){.nav .full{display:none}.nav .short{display:inline}}
+table.plain th{cursor:default}
+table.plain td,table.plain th{white-space:normal;text-align:left}
+table.plain td:first-child,table.plain th:first-child{position:static;min-width:0;max-width:none}
+.narr ul.x{margin:0}
 .hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-bottom:6px}
 .score .ring{width:112px;height:112px}
 .score .ring .num b{font-size:30px}
@@ -715,19 +721,124 @@ function pageAudiencia() {
   <p class="note">Estos datos describen a tus seguidores de la última semana. Úsalos para decidir el tono, los ejemplos, el horario y los países a los que apuntas con tus ofertas.</p>`;
 }
 
+/* ---------- Fórmula TikTok: principios + tus propios datos ---------- */
+const STOP = new Set(["para", "como", "cómo", "con", "los", "las", "una", "que", "por", "del", "tus", "sus", "este", "esta", "esto", "más", "muy", "pero", "gratis", "video", "videos", "ahora", "todo", "todos", "tiene", "puedes", "desde", "entre", "sobre", "donde", "cuando", "hacer", "tienes", "solo", "mejor", "mejores"]);
+const tagsOf = (v) => (v.caption.match(/#[\p{L}\p{N}_]+/gu) || []).map((t) => t.toLowerCase());
+function apertura(c) {
+  const t = c.replace(/^[^\p{L}\p{N}¿]+/u, "").trim(), ini = t.slice(0, 90);
+  if (/^¿/.test(t) || /\?/.test(ini)) return "Pregunta";
+  if (/^\d+\s/.test(t) || /\b\d+\s+(skills|errores|formas|pasos|tips|razones|herramientas|p[aá]ginas|ideas|consejos)/i.test(ini)) return "Lista o número";
+  if (/^(c[oó]mo|aprende|crea|haz|usa|descubre)\b/i.test(t)) return "Cómo hacer / tutorial";
+  if (/(urgente|atenci[oó]n|ojo|cuidado|elimin|nuevo|ya puedes|acaba de|se acab)/i.test(ini)) return "Alerta o novedad";
+  return "Afirmación directa";
+}
+function gstat(list) {
+  if (!list.length) return null;
+  const tv = sum(list, "views");
+  return { n: list.length, med: median(list.map((v) => v.views)), ret: median(list.map((v) => v.full_rate)), watch: median(list.map((v) => v.watchPct)), segK: tv ? (sum(list, "new_followers") / tv) * 1000 : 0, share: tv ? (sum(list, "shares") / tv) * 1000 : 0 };
+}
+function gtable(title, hint, rows, note) {
+  const okRows = rows.filter((r) => r.s && r.s.n >= 2), best = okRows.length ? [...okRows].sort((a, b) => b.s.segK - a.s.segK)[0] : null;
+  if (!rows.length) return "";
+  return `<div class="card"><h3>${title}</h3><p class="hint">${hint}</p><div class="tw"><table class="plain"><thead><tr><th>Grupo</th><th>Videos</th><th>Vistas típicas</th><th>Lo ve completo</th><th>Tiempo visto</th><th>Seg. / 1k vistas</th><th>Compart. / 1k</th></tr></thead><tbody>
+    ${rows.map((r) => `<tr><td><b>${esc(r.l)}</b> ${best && r === best ? '<span class="tag good">🏆 Mejor conversión</span>' : ""}${r.s.n < 2 ? ' <span class="tag warn">poca muestra</span>' : ""}</td><td>${r.s.n}</td><td>${fmt(r.s.med)}</td><td>${pct(r.s.ret)}</td><td>${pct(r.s.watch, 0)}</td><td>${fmt(r.s.segK, 1)}</td><td>${fmt(r.s.share, 1)}</td></tr>`).join("")}</tbody></table></div>${note ? `<p class="note">${note}</p>` : ""}</div>`;
+}
+function pageFormula(x) {
+  const all = x.all.filter((v) => maduro(v) && v.views >= 300), n = all.length, w = ventana(DATA.actividad);
+  const med = (f) => median(all.map(f)), com1k = (v) => (v.views ? (v.comments / v.views) * 1000 : 0);
+  const SIG = [
+    { s: "Retención y tiempo visto", p: "Que la gente se quede hasta el final, y mejor aún, que lo repita. Es la señal que más se menciona como decisiva.", m: n ? `Tú: ${pct(med((v) => v.full_rate))} lo ve completo · ${pct(med((v) => v.watchPct), 0)} del video en promedio` : "–" },
+    { s: "Compartidos", p: "Compartir dice «esto vale la pena». Además lleva tu video a gente nueva.", m: n ? `Tú: ${fmt(med((v) => v.share1k), 1)} por cada 1.000 vistas` : "–" },
+    { s: "Guardados", p: "Indican utilidad: tutoriales, listas, plantillas que la gente quiere volver a ver.", m: n ? `Tú: ${fmt(med((v) => v.fav1k), 1)} por cada 1.000 vistas` : "–" },
+    { s: "Comentarios", p: "Conversación real. Responder comentarios extiende la vida del video.", m: n ? `Tú: ${fmt(med(com1k), 1)} por cada 1.000 vistas` : "–" },
+    { s: "Seguir desde el video", p: "Señal de que aportas valor repetible, no solo entretenimiento de una vez.", m: n ? `Tú: ${fmt(med((v) => v.segK), 1)} seguidores por cada 1.000 vistas` : "–" },
+    { s: "Me gusta", p: "Es una señal rápida y fácil de dar, por eso suele pesar menos que las anteriores.", m: n ? `Tú: ${pct(med((v) => (v.views ? v.likes / v.views : 0)))} de las vistas` : "–" },
+  ];
+  const edu = `<div class="card"><h3>Cómo decide TikTok a quién mostrar tu video</h3><p class="hint">TikTok no publica pesos exactos. Esto resume sus principios generales y lo que se observa en la práctica; lo valioso es medirlos en tu propia cuenta.</p>
+    <div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">${[
+      ["1 · Prueba", "Tu video se muestra a un grupo pequeño de personas con intereses parecidos al tema."],
+      ["2 · Señales", "Mide qué hacen: ¿se quedan?, ¿lo repiten?, ¿comparten, guardan, comentan, te siguen?"],
+      ["3 · Expansión", "Si las señales son buenas, lo muestra a un grupo mayor. Si no, se detiene. Se repite por oleadas."],
+      ["4 · Vida larga", "Un video útil puede volver a circular semanas después, sobre todo por búsqueda y por el tema."],
+    ].map((s) => `<div class="stat"><div class="v" style="font-size:15px">${s[0]}</div><div class="s" style="font-size:12.5px;color:var(--ink2);margin-top:4px">${s[1]}</div></div>`).join("")}</div>
+    <div class="tw" style="margin-top:14px"><table class="plain"><thead><tr><th>Señal</th><th>Por qué importa</th><th>Tu cuenta</th></tr></thead><tbody>${SIG.map((s) => `<tr><td><b>${s.s}</b></td><td style="white-space:normal;min-width:220px">${s.p}</td><td style="white-space:normal;min-width:180px">${s.m}</td></tr>`).join("")}</tbody></table></div>
+    <p class="note">Orden práctico: primero retención, luego compartidos y guardados, y al final los me gusta. Los números «Tú» son la mediana de tus últimos ${n} videos.</p></div>`;
+  if (n < 6) return `<div class="actions">${edu}<div class="card empty">Para calcular tu fórmula personal necesito al menos 6 videos con más de 2 días de publicados. Sigue publicando y esta hoja se llenará sola.</div></div>`;
+
+  // ganadores vs resto
+  const rk = (f) => { const s = [...all].sort((a, b) => f(a) - f(b)); return new Map(s.map((v, i) => [v.id, i / (n - 1)])); }, rv = rk((v) => v.views), rs = rk((v) => v.segK);
+  const sorted = [...all].sort((a, b) => rv.get(b.id) * 0.5 + rs.get(b.id) * 0.5 - (rv.get(a.id) * 0.5 + rs.get(a.id) * 0.5)), k = Math.max(3, Math.round(n * 0.25)), win = sorted.slice(0, k), rest = sorted.slice(k);
+  const inW = (v) => (w ? [0, 1, 2].some((j) => (w.s + j) % 24 === vhour(v)) : false);
+  const TR = [
+    { l: "Duración", f: (v) => v.dur, fm: (q) => fmt(q) + " s" }, { l: "Lo ve completo", f: (v) => v.full_rate, fm: (q) => pct(q) }, { l: "Tiempo visto (% del video)", f: (v) => v.watchPct, fm: (q) => pct(q, 0) },
+    { l: "Compartidos / 1k vistas", f: (v) => v.share1k, fm: (q) => fmt(q, 1) }, { l: "Guardados / 1k vistas", f: (v) => v.fav1k, fm: (q) => fmt(q, 1) }, { l: "Comentarios / 1k vistas", f: com1k, fm: (q) => fmt(q, 1) },
+    { l: "Largo del texto (palabras)", f: (v) => v.caption.split(/\s+/).length, fm: (q) => fmt(q) },
+  ];
+  const trs = TR.map((t) => { const a = median(win.map(t.f)), b = median(rest.map(t.f)), r = b ? a / b : 1; return { ...t, a, b, r }; });
+  const dif = [...trs].sort((p, q) => Math.abs(Math.log(q.r || 1)) - Math.abs(Math.log(p.r || 1))).slice(0, 2).filter((t) => Math.abs(t.r - 1) > 0.15);
+  const winW = w ? win.filter(inW).length / win.length : null, restW = w && rest.length ? rest.filter(inW).length / rest.length : null;
+  const sec2 = `<div class="card"><h3>Tu fórmula ganadora</h3><p class="hint">Comparé tus ${win.length} mejores videos (mezcla de vistas y seguidores ganados) con el resto de tus ${n}. Así se ve lo que hacen distinto.</p>
+    <div class="tw"><table class="plain"><thead><tr><th>Rasgo</th><th>Tus mejores</th><th>El resto</th><th>Lectura</th></tr></thead><tbody>${trs.map((t) => `<tr><td><b>${t.l}</b></td><td>${t.fm(t.a)}</td><td>${t.fm(t.b)}</td><td>${t.r > 1.15 ? '<span class="good-t">▲ más alto en tus mejores</span>' : t.r < 0.87 ? '<span class="bad-t">▼ más bajo en tus mejores</span>' : '<span style="color:var(--ink3)">• parecido</span>'}</td></tr>`).join("")}
+    ${winW !== null && restW !== null ? `<tr><td><b>Publicados en tu mejor ventana</b></td><td>${pct(winW, 0)}</td><td>${pct(restW, 0)}</td><td>${winW > restW + 0.1 ? '<span class="good-t">▲ el horario ayuda</span>' : '<span style="color:var(--ink3)">• sin diferencia clara</span>'}</td></tr>` : ""}</tbody></table></div>
+    ${dif.length ? `<p class="note"><b>Lectura rápida:</b> ${dif.map((t) => `en tus mejores videos «${t.l.toLowerCase()}» es ${t.r > 1 ? "más alto" : "más bajo"} (${t.fm(t.a)} vs. ${t.fm(t.b)})`).join("; ")}.</p>` : '<p class="note">Tus mejores videos no se diferencian mucho del resto en estos rasgos: el tema y el gancho pueden pesar más.</p>'}</div>`;
+
+  // temas
+  let tagMap = {}; all.forEach((v) => tagsOf(v).forEach((t) => (tagMap[t] ||= new Set()).add(v.id)));
+  let topics = Object.entries(tagMap).filter(([, s]) => s.size >= 2 && s.size <= n * 0.7).sort((a, b) => b[1].size - a[1].size).slice(0, 8).map(([t, s]) => ({ l: t, s: gstat(all.filter((v) => s.has(v.id))) }));
+  let origen = "hashtags";
+  if (topics.length < 2) {
+    const wm = {}; all.forEach((v) => new Set((v.caption.toLowerCase().match(/[\p{L}]{6,}/gu) || []).filter((q) => !STOP.has(q))).forEach((q) => (wm[q] ||= new Set()).add(v.id)));
+    topics = Object.entries(wm).filter(([, s]) => s.size >= 2 && s.size <= n * 0.6).sort((a, b) => b[1].size - a[1].size).slice(0, 8).map(([t, s]) => ({ l: t, s: gstat(all.filter((v) => s.has(v.id))) })); origen = "palabras clave";
+  }
+  const sec3 = gtable("Tus temas", `Agrupé tus videos por ${origen} de la descripción. Un tema con buenas vistas y buena conversión es el que debes repetir.`, topics, "Un video puede aparecer en varios temas. Los hashtags que usas en casi todos tus videos se ignoran porque no distinguen entre ellos.");
+  const dur = [["Cortos (menos de 30 s)", (v) => v.dur < 30], ["Medios (30 a 60 s)", (v) => v.dur >= 30 && v.dur < 60], ["Largos (más de 60 s)", (v) => v.dur >= 60]].map(([l, f]) => ({ l, s: gstat(all.filter(f)) })).filter((r) => r.s);
+  const sec4 = gtable("Duración", "Cuánto dura el video que mejor te funciona. Si dura más, mira el «Tiempo visto»: indica si el contenido sostiene a la gente.", dur);
+  const ap = {}; all.forEach((v) => (ap[apertura(v.caption)] ||= []).push(v));
+  const apRows = Object.entries(ap).map(([l, vs]) => ({ l, s: gstat(vs) })).sort((a, b) => b.s.n - a.s.n);
+  const sec5 = gtable("Gancho: cómo empieza tu video", "Clasifiqué cómo empieza la descripción de cada video. Suele repetir el gancho que dices en voz alta, pero es una pista, no una medición exacta de los primeros 3 segundos.", apRows, "TikTok no entrega la curva de retención por segundo; por eso el gancho se mide con «Lo ve completo» y «Tiempo visto».");
+
+  // diagnóstico por video
+  const mV = median(all.map((v) => v.views)), mR = median(all.map((v) => v.full_rate)), mS = median(all.map((v) => v.share1k)), mG = median(all.map((v) => v.segK));
+  const diag = (v) => {
+    let d;
+    if (v.views >= mV && v.full_rate >= mR) d = { c: "good", t: "Ganador: replícalo" };
+    else if (v.views < mV && v.full_rate >= mR) d = { c: "info", t: "Buen contenido, poca distribución: prueba otro tema, título u horario" };
+    else if (v.views >= mV) d = { c: "warn", t: "Mucho alcance pero se van rápido: refuerza el gancho y el ritmo" };
+    else d = { c: "bad", t: "Poco alcance y poca retención: cambia el tema y el gancho" };
+    const ex = []; if (mS && v.share1k >= mS * 1.5) ex.push("muy compartible"); if (mG && v.segK >= mG * 1.5) ex.push("convierte en seguidores");
+    return { ...d, ex };
+  };
+  const sec6 = `<div class="card"><h3>Diagnóstico de tus videos recientes</h3><p class="hint">Cada video comparado con tu propia mediana (${fmt(mV)} vistas, ${pct(mR)} lo ve completo).</p><div class="actions">${[...all].sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 8).map((v) => { const d = diag(v); return `<div class="action" style="padding:10px 0;border-top:1px solid var(--line)"><div><b style="font-size:13.5px">${esc(short(v.caption, 80))}</b><span><span class="tag ${d.c}">${d.t.split(":")[0]}</span>${d.t.includes(":") ? d.t.split(":").slice(1).join(":").trim() : ""} ${d.ex.map((e) => `<span class="tag info">${e}</span>`).join("")}</span><span class="why">${fmt(v.views)} vistas · ${pct(v.full_rate)} lo ve completo · ${fmt(v.watchPct * 100)}% del video visto · ${fmt(v.segK, 1)} seg. por 1k vistas</span></div></div>`; }).join("")}</div></div>`;
+
+  // plan de la semana
+  const okT = topics.filter((t) => t.s.n >= 2).sort((a, b) => b.s.segK - a.s.segK)[0], okD = [...dur].filter((r) => r.s.n >= 2).sort((a, b) => b.s.med - a.s.med)[0], okA = apRows.filter((r) => r.s.n >= 2).sort((a, b) => b.s.segK - a.s.segK)[0];
+  const plan = [
+    okT ? `Haz 1 video del tema <b>${esc(okT.l)}</b>, el que mejor convierte vistas en seguidores (${fmt(okT.s.segK, 1)} por 1.000).` : null,
+    okD ? `Apunta a una duración de <b>${esc(okD.l.toLowerCase())}</b>, donde tus vistas típicas son ${fmt(okD.s.med)}.` : null,
+    okA ? `Abre con una <b>${esc(okA.l.toLowerCase())}</b> en la primera frase y en la descripción.` : null,
+    w ? `Publica entre <b>${hh(w.s)} y ${hh(w.e)}</b>, cuando más seguidores tuyos están conectados.` : null,
+    "Cierra pidiendo <b>guardar o compartir</b> si es útil, o <b>seguirte</b> si es parte de una serie.",
+  ].filter(Boolean);
+  const sec7 = `<div class="card"><h3>Tu plan para el próximo video</h3><p class="hint">Armado con lo que mejor te funcionó hasta hoy</p><div class="narr"><ul>${plan.map((p) => `<li><span>${p}</span></li>`).join("")}</ul></div>
+    <h3 style="margin-top:18px">Lista antes de publicar</h3><div class="narr"><ul>${["Los primeros 3 segundos prometen un resultado o plantean un problema claro.", "Una sola idea por video; quita pausas y relleno.", "Aporta algo que valga la pena guardar o compartir.", "La descripción incluye las palabras que tu cliente buscaría.", "Terminas con un llamado: guardar, compartir, seguir o ir al enlace.", "Responderás los comentarios en la primera hora."].map((p) => `<li><span>${p}</span></li>`).join("")}</ul></div></div>`;
+  return `<div class="actions">${edu}${sec2}${sec3}${sec4}${sec5}${sec6}${sec7}</div>`;
+}
+
 /* ---------- estructura, navegación y rango ---------- */
 const ICON = {
   resumen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
   horario: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
   videos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 9.5v5l4.5-2.5z"/></svg>',
   recomendaciones: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>',
+  formula: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6.2L4.6 18.4A2 2 0 0 0 6.3 21h11.4a2 2 0 0 0 1.7-2.6L14 9.2V3"/><path d="M7.5 15h9"/></svg>',
   audiencia: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.4 3-5.5 6.5-5.5s5.9 2.1 6.5 5.5"/><path d="M16 4.7a3.5 3.5 0 0 1 0 6.6M18.5 14.7c1.6.8 2.7 2.5 3 5.3"/></svg>',
 };
 const PAGES = [
   { id: "resumen", l: "Resumen", sub: "Cómo va tu cuenta en el rango elegido", fn: pageResumen },
-  { id: "horario", l: "Mejor horario", sub: "Cuándo publicar y qué resultado esperar", fn: pageHorario, noRange: true },
+  { id: "horario", l: "Mejor horario", s: "Horario", sub: "Cuándo publicar y qué resultado esperar", fn: pageHorario, noRange: true },
   { id: "videos", l: "Videos", sub: "El rendimiento de cada video publicado en el rango", fn: pageVideos },
-  { id: "recomendaciones", l: "Recomendaciones", sub: "Qué hacer, ordenado por importancia", fn: pageReco },
+  { id: "recomendaciones", l: "Recomendaciones", s: "Consejos", sub: "Qué hacer, ordenado por importancia", fn: pageReco },
+  { id: "formula", l: "Fórmula TikTok", s: "Fórmula", sub: "Cómo funciona el algoritmo y qué le funciona a tu cuenta", fn: pageFormula, noRange: true },
   { id: "audiencia", l: "Audiencia", sub: "Quiénes son tus seguidores", fn: pageAudiencia, noRange: true },
 ];
 function setRange(from, to) {
@@ -749,7 +860,7 @@ function renderToolbar() {
     <div class="dates"><label for="dFrom">Desde</label><input type="date" id="dFrom" min="${MIN}" max="${MAX}" value="${S.from}"><label for="dTo">hasta</label><input type="date" id="dTo" min="${MIN}" max="${MAX}" value="${S.to}"></div>`;
 }
 function renderNav() {
-  $("#nav").innerHTML = PAGES.map((p) => `<button data-page="${p.id}" ${p.id === S.page ? 'aria-current="page"' : ""}>${ICON[p.id]}<span>${p.l}</span></button>`).join("");
+  $("#nav").innerHTML = PAGES.map((p) => `<button data-page="${p.id}" ${p.id === S.page ? 'aria-current="page"' : ""}>${ICON[p.id]}<span class="full">${p.l}</span><span class="short">${p.s || p.l}</span></button>`).join("");
 }
 function renderPage() {
   const pg = PAGES.find((p) => p.id === S.page);
